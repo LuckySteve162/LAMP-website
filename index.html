@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Button Clicker</title>
+</head>
+
+<body>
+    <h1>Welcome to the Button Clicker</h1>
+
+    <p>Click the button to increase your click count:</p>
+
+    <button id="clickButton">Click Me</button>
+
+    <p>Your click count: <span id="clickCount">0</span></p>
+
+    <h2>Top 10 Users</h2>
+    <ol id="scoreboard"></ol>
+
+    <script>
+        // Get the username from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+
+        // Initialize click count to 0
+        let clickCount = 0;
+
+        // Update the click count on the button click
+        const clickButton = document.getElementById('clickButton');
+        clickButton.addEventListener('click', () => {
+            clickCount++;
+            document.getElementById('clickCount').textContent = clickCount;
+
+            // Send the updated click count to the server
+            fetch(`/script.php?username=${username}&count=${clickCount}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.scoreboard) {
+                        updateScoreboard(data.scoreboard);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+        // Function to update the scoreboard
+        function updateScoreboard(scoreboardData) {
+            const scoreboard = document.getElementById('scoreboard');
+            scoreboard.innerHTML = '';
+
+            scoreboardData.forEach((entry, index) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `${index + 1}. ${entry.username}: ${entry.count}`;
+                scoreboard.appendChild(listItem);
+            });
+        }
+
+        // Initial fetch to get the scoreboard
+        fetch(`/script.php?username=${username}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.scoreboard) {
+                    updateScoreboard(data.scoreboard);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    </script>
+</body>
+
+</html>
